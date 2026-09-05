@@ -1,0 +1,256 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background-color 0.5s ease, filter 0.5s ease, transform 0.5s ease;
+}
+
+/* Ventana flotante de la cámara */
+.webcam-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #00f2fe;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+  z-index: 100;
+  background: #000;
+}
+
+#webcam {
+  display: none; /* Se dibuja en el canvas */
+}
+
+#webcam-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Efecto espejo */
+}
+
+.webcam-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #00f2fe;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* Cursor de seguimiento */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s ease;
+}
+
+.cursor.hidden {
+  opacity: 0;
+}
+
+.cursor .dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: #00f2fe;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #00f2fe, 0 0 20px #00f2fe;
+}
+
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.1s linear;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  stroke-dasharray: 125.6;
+  stroke-dashoffset: 125.6;
+}
+
+/* Layout del Juego */
+.game-container {
+  width: 90%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.hud {
+  display: flex;
+  gap: 30px;
+  background: rgba(30, 41, 59, 0.8);
+  padding: 15px 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hud-item .label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.hud-item .value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.event-banner {
+  background: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  animation: pulse 1s infinite alternate;
+}
+
+.event-banner.hidden {
+  display: none;
+}
+
+/* Grid de tarjetas */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 15px;
+  width: 100%;
+  max-width: 650px;
+  perspective: 1000px;
+}
+
+.card {
+  aspect-ratio: 3 / 4;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease, box-shadow 0.2s ease, border-color 0.3s ease;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.card.hovered {
+  box-shadow: 0 0 15px #00f2fe;
+}
+
+.card.flipped, .card.matched {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-front {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.card-front::after {
+  content: '?';
+  color: #475569;
+  font-weight: bold;
+}
+
+.card-back {
+  background: linear-gradient(135deg, #334155, #1e293b);
+  transform: rotateY(180deg);
+}
+
+/* Marca de Error X Neón */
+.card.wrong .card-back::before {
+  content: '✕';
+  position: absolute;
+  font-size: 4rem;
+  color: #ff0055;
+  text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055, 0 0 30px #ff0055;
+  z-index: 10;
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Modos de Eventos */
+body.event-inverted {
+  transform: rotate(180deg);
+}
+
+/* Modo Oscuridad Ciberpunk (Contornos Neón) */
+body.event-dark {
+  background-color: #030712;
+}
+
+body.event-dark .hud {
+  border: 1px solid #ff007f;
+  box-shadow: 0 0 15px #ff007f;
+}
+
+body.event-dark .card-face {
+  border: 2px solid #00f2fe;
+  box-shadow: 0 0 10px #00f2fe, inset 0 0 10px rgba(0, 242, 254, 0.3);
+  background: #090d16;
+}
+
+body.event-dark .card-front::after {
+  color: #00f2fe;
+  text-shadow: 0 0 8px #00f2fe;
+}
+
+@keyframes pulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotateY(180deg) translateX(0); }
+  20% { transform: rotateY(180deg) translateX(-8px); }
+  40% { transform: rotateY(180deg) translateX(8px); }
+  60% { transform: rotateY(180deg) translateX(-5px); }
+  80% { transform: rotateY(180deg) translateX(5px); }
+}
