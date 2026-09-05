@@ -3,54 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vision Memory - Hand Controller Game</title>
+  <title>Vision Memory Game</title>
   <link rel="stylesheet" href="styles.css">
   
-  <!-- MediaPipe Hands & Drawing Utils CDN -->
+  <!-- MediaPipe dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
-  <!-- Ventana flotante de la cámara con Canvas para esqueleto visual -->
-  <div class="webcam-container">
-    <video id="webcam" autoplay playsinline muted></video>
-    <canvas id="webcam-canvas"></canvas>
-    <span class="webcam-label">Cámara en Vivo</span>
+  <!-- PANTALLA: MENÚ PRINCIPAL -->
+  <div id="menu-screen" class="screen">
+    <h1 class="game-title">VISION MEMORY</h1>
+    <div class="menu-actions">
+      <button id="btn-play" class="btn btn-primary">JUGAR</button>
+      <button id="btn-scores" class="btn btn-secondary">PUNTAJES</button>
+    </div>
   </div>
 
-  <!-- Cursor flotante que sigue el dedo -->
-  <div id="hand-cursor" class="cursor hidden">
-    <svg class="progress-ring" width="48" height="48">
-      <circle class="progress-ring-circle" stroke="#00f2fe" stroke-width="4" fill="transparent" r="20" cx="24" cy="24"/>
-    </svg>
-    <div class="dot"></div>
+  <!-- PANTALLA: CALIBRACIÓN DE CÁMARA -->
+  <div id="calibration-screen" class="screen hidden">
+    <h2>Calibración de Visión</h2>
+    <p>Ubica tu mano frente a la cámara para iniciar</p>
+    <div class="canvas-container">
+      <video id="webcam" style="display:none;"></video>
+      <canvas id="calib-canvas"></canvas>
+    </div>
+    <div id="calib-status" class="status-badge waiting">Buscando mano...</div>
+    <button id="btn-start-game" class="btn btn-primary" disabled>COMENZAR JUEGO</button>
   </div>
 
-  <main class="game-container">
+  <!-- PANTALLA: JUEGO -->
+  <div id="game-screen" class="screen hidden">
+    <!-- HUD Superior -->
     <header class="hud">
       <div class="hud-item">
-        <span class="label">Nivel</span>
-        <span id="level-display" class="value">1</span>
+        <span class="hud-label">NIVEL</span>
+        <span id="level-display" class="hud-value">1</span>
       </div>
       <div class="hud-item">
-        <span class="label">Intentos</span>
-        <span id="moves-display" class="value">0</span>
+        <span class="hud-label">MOVIMIENTOS</span>
+        <span id="moves-display" class="hud-value">0</span>
       </div>
       <div class="hud-item">
-        <span class="label">Parejas</span>
-        <span id="pairs-display" class="value">0 / 3</span>
+        <span class="hud-label">PAREJAS</span>
+        <span id="pairs-display" class="hud-value">0 / 3</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">MÚSICA</span>
+        <span id="music-track-display" class="hud-value">Track 1</span>
       </div>
     </header>
 
-    <div id="event-banner" class="event-banner hidden">
-      ⚡ EVENTO ESPECIAL ACTIVADO ⚡
+    <!-- Barra de Vida -->
+    <div class="health-container">
+      <div class="health-bar">
+        <div id="health-bar-fill" class="health-bar-fill" style="width: 100%;"></div>
+      </div>
+      <span id="health-text" class="health-text">100 / 100</span>
     </div>
 
-    <!-- Tablero de tarjetas -->
+    <!-- Mensaje de Eventos de Nivel -->
+    <div id="event-banner" class="event-banner hidden">¡MODO DESAFÍO ACTIVADO!</div>
+
+    <!-- Tablero de Cartas -->
     <div id="grid-container" class="grid-container"></div>
-  </main>
+
+    <!-- Camara Web (Minimapa) -->
+    <div class="game-webcam-preview">
+      <canvas id="webcam-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- MODAL: PUNTAJES -->
+  <div id="scores-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Mejor Puntuación</h2>
+      <p class="score-text">Máximo Nivel Alcanzado: <span id="best-level">1</span></p>
+      <button id="btn-close-scores" class="btn btn-secondary">CERRAR</button>
+    </div>
+  </div>
+
+  <!-- MODAL: GAME OVER -->
+  <div id="gameover-modal" class="modal hidden">
+    <div class="modal-content danger">
+      <h2>¡GAME OVER!</h2>
+      <p>Te has quedado sin energía.</p>
+      <p>Llegaste hasta el Nivel: <span id="go-level">1</span></p>
+      <button id="btn-restart" class="btn btn-primary">REINTENTAR</button>
+    </div>
+  </div>
+
+  <!-- CURSOR DE MANO Y DWELL TIMER -->
+  <div id="hand-cursor" class="hand-cursor">
+    <span class="cursor-dot" aria-hidden="true"></span>
+    <svg class="progress-ring" width="48" height="48">
+      <circle class="progress-ring-circle" stroke="cyan" stroke-width="4" fill="transparent" r="20" cx="24" cy="24"/>
+    </svg>
+  </div>
 
   <script src="app.js"></script>
 </body>
